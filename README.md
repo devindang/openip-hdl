@@ -14,7 +14,7 @@ Open IP in Hardware Description Language.
 
 | Order | Module Name | Descriptions                                                 |
 | ----- | ----------- | ------------------------------------------------------------ |
-| 1     | [cordic_log](https://github.com/devindang/openip-hdl/cordic_log)  | Calculate natural logarithm using hyperbolic CORDIC algorithm. |
+| 1     | [cordic_log](https://github.com/devindang/openip-hdl/tree/main/cordic_log)  | Calculate natural logarithm using hyperbolic CORDIC algorithm. |
 |       |             |                                                              |
 |       |             |                                                              |
 
