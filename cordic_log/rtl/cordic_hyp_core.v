@@ -31,7 +31,7 @@ module cordic_hyp_core #(
     reg signed [2*WD-1:0]  x0;
     reg signed [2*WD-1:0]  y0;
     reg signed [31:0]      z0;
-    reg             vld;
+    reg                    vld;
 
     always @(posedge i_clk or negedge i_arstn) begin : reg_proc
         if(!i_arstn) begin
@@ -47,28 +47,6 @@ module cordic_hyp_core #(
         end
     end
 
-//    always @(posedge i_clk or negedge i_arstn) begin
-//        if(!i_arstn) begin
-//            o_x1    <=  'b0;
-//            o_y1    <=  'b0;
-//            o_z1    <=  'b0;
-//            o_valid <=  1'b0;
-//        end else begin
-//            if(vld==1'b1) begin
-//                if(y0[2*WD-1]==1'b1) begin
-//                    o_x1  <=  i_x + i_y >>> $unsigned(i_iter);
-//                    o_y1  <=  i_y + i_x >>> $unsigned(i_iter);
-//                    o_z1  <=  i_z - atanh;
-//                end else begin
-//                    o_x1  <=  i_x - i_y >>> $unsigned(i_iter);
-//                    o_y1  <=  i_y - i_x >>> $unsigned(i_iter);
-//                    o_z1  <=  i_z + atanh;
-//                end
-//            end
-//            o_valid <=  i_valid;
-//        end
-//    end
-    
     always @(posedge i_clk or negedge i_arstn) begin
         if(!i_arstn) begin
             o_x1    <=  'b0;
@@ -78,13 +56,13 @@ module cordic_hyp_core #(
         end else begin
             if(vld==1'b1) begin
                 if(y0[2*WD-1]==1'b1) begin
-                    o_x1  <=  $signed(x0) + $signed(y0 >>> $unsigned(i_iter));
-                    o_y1  <=  $signed(y0) + $signed(x0 >>> $unsigned(i_iter));
-                    o_z1  <=  $signed(z0) - $signed(atanh);
+                    o_x1  <=  x0 + $signed(y0 >>> $unsigned(i_iter));
+                    o_y1  <=  y0 + $signed(x0 >>> $unsigned(i_iter));
+                    o_z1  <=  z0 - atanh;
                 end else begin
-                    o_x1  <=  $signed(x0) - $signed(y0 >>> $unsigned(i_iter));
-                    o_y1  <=  $signed(y0) - $signed(x0 >>> $unsigned(i_iter));
-                    o_z1  <=  $signed(z0) + $signed(atanh);
+                    o_x1  <=  x0 - $signed(y0 >>> $unsigned(i_iter));
+                    o_y1  <=  y0 - $signed(x0 >>> $unsigned(i_iter));
+                    o_z1  <=  z0 + atanh;
                 end
             end
             o_valid <=  vld;
