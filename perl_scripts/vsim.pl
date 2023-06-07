@@ -1,7 +1,7 @@
 #!usr/bin/perl
 use warnings;
 
-$fin = '../src/we.txt';
+$fin = '../src/in.txt';
 $fout = '../src/out.txt';
 $n_signal = 0;
 $trig_sel = 0;
@@ -15,11 +15,12 @@ open(FH,'<',$fin) or die $!;
 open(OUT_FH,'>',$fout) or die $!;
 
 while (my $line = <FH>) {
-	if($line =~ /\/(?<name>\w+)\s+/) {
+	while($line =~ /\/(?<name>\w+)\s+/g) {
 		$signal_name = $+{name};
 		$n_signal = $n_signal + 1;
 		push(@signal_list,$signal_name);
-	} elsif ($line =~ /^\s*\d/) {
+	}
+	if ($line =~ /^\s*\d/) {
 		last;
 	}
 }
@@ -68,4 +69,3 @@ while (my $line = <FH>) {
 		}
     }
 }
-
