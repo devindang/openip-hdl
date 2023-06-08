@@ -1,12 +1,19 @@
 #!usr/bin/perl
 use warnings;
 
-$fin = '../src/in.txt';
-$fout = '../src/out.txt';
+print "Source file path:\n";
+print "\> ";
+$fin = <STDIN>;
+chomp($fin);
+print "Target file path:\n";
+print "\> ";
+$fout = <STDIN>;
+chomp($fout);
+
 $n_signal = 0;
 $trig_sel = 0;
-$signal_name;
-@signal_list;
+$signal_name = '';
+@signal_list = ();
 $line_num = 0;
 $start = 0;
 $end = 10;
@@ -32,10 +39,12 @@ foreach my $i (0 .. $#signal_list) {
 	print "\[" . ($i+1) . "\]. " . $signal_list[$i] . "\n";
 }
 
+print "\> ";
 $trig_sel = <STDIN>;
 chomp($trig_sel) if defined $trig_sel;
 if($trig_sel eq "p") {
 	print "Input the start and end. example 100,300 \n";
+	print "\> ";
 	my $start_end = <STDIN>;
 	$start_end =~ /(\d+),(\d+)/;
 	$start = $1;
