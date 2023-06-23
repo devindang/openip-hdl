@@ -12,11 +12,11 @@ Open IP in Hardware Description Language.
 
 ### Catalogs:
 
-| Order | Module Name | Descriptions                                                 |
-| ----- | ----------- | ------------------------------------------------------------ |
-| 1     | [cordic_log](https://github.com/devindang/openip-hdl/tree/main/cordic_log)  | Calculate natural logarithm using hyperbolic CORDIC algorithm. |
-|       |             |                                                              |
-|       |             |                                                              |
+| Order | Module Name                                                  | Descriptions                                                 |
+| ----- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 1     | [cordic_log](https://github.com/devindang/openip-hdl/tree/main/cordic_log) | Calculate natural logarithm using hyperbolic CORDIC algorithm. |
+| 2     | [nr_fft](https://github.com/devindang/openip-hdl/tree/main/nr_fft) | Calculate Fast Fourier Transform (FFT) for NR bandwidth.     |
+|       |                                                              |                                                              |
 
 ### Scripts:
 
