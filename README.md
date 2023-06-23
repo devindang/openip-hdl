@@ -22,7 +22,6 @@ Open IP in Hardware Description Language.
 
 | Order | Scripts Name                                                 | Descriptions                                                 |
 | ----- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 1     | [vsim.pl](https://github.com/devindang/openip-hdl/blob/main/perl_scripts/vsim.pl) | Perl scripts for extracting Mentor Modelsim list information. |
+| 1     | [vsim.pl](https://github.com/devindang/openip-hdl/blob/main/perl_scripts/vsim.pl) | Perl scripts for extracting Mentor Modelsim list information. [Usage](https://www.cnblogs.com/devindd/articles/17426494.html) |
 |       |                                                              |                                                              |
 |       |                                                              |                                                              |
-
