@@ -1,6 +1,6 @@
 quit -sim
 
-set top tb_rv_core
+set top tb_div
 
 .main clear
 
