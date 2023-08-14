@@ -27,4 +27,8 @@ Open IP in Hardware Description Language.
 | 3     | [makefile](https://github.com/devindang/openip-hdl/blob/main/perl_scripts/makefile) | Makefile for execute compilation, simulation, invoke Verdi, and make clean. |
 | 4     | [clean.sh](https://github.com/devindang/openip-hdl/blob/main/perl_scripts/clean.sh) | Shell scripts to clean Modelsim simulation temp files, place this file into your vsim/ directory, clean.pl will detect this file to perform clean. |
 
+### License
 
+Copyright (c) 2023, devindang
+
+The software is licensed under [3-clause BSD License](https://opensource.org/license/bsd-3-clause/).
