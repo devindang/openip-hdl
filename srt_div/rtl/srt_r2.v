@@ -20,7 +20,8 @@ module srt_r2(
 	input			  rstn,
 	input		[7:0] op1_i,	// dividend
 	input 		[7:0] op2_i,	// divisor
-	output reg  [7:0] res_o
+	output reg  [7:0] rem_o,
+	output reg  [7:0] quo_o
 );
 
 //------------------------ SIGNALS ------------------------//
@@ -32,13 +33,13 @@ wire [7:0] q;
 wire [7:0] n;
 reg  [7:0] Q_reg[7:0];
 reg  [7:0] QM_reg[7:0];
+reg  [2:0] op2_ld_r[7:0];	// op2 leading digit register
 
 //------------------------ PROCESS ------------------------//
 
 // find leading 1s or 0s
 find_ld #(8) u_find_ld2 (.op(op2_i), .pos(op2_ld));
 assign op2_n = op2_i << op2_ld;
-
 assign q[0] = 1'b0;
 assign n[0] = 1'b0;
 genvar i;
@@ -52,6 +53,19 @@ generate
 		);
 	end
 endgenerate
+integer i1;
+always @(posedge clk or negedge rstn) begin
+	if(!rstn) begin
+		for(i1=0; i1<8; i1=i1+1) begin
+			op2_ld_r[i1] <= 3'd0;
+		end
+	end else begin
+		op2_ld_r[0] <= op2_ld;
+		for(i1=0; i1<7; i1=i1+1) begin
+			op2_ld_r[i1+1] <= op2_ld_r[i1];
+		end
+	end
+end
 
 // residual remainder
 always @(posedge clk or negedge rstn) begin
@@ -108,7 +122,23 @@ generate
 	end
 endgenerate
 
-//------------------------ INST ------------------------//
+// post proccessing
+always @(posedge clk or negedge rstn) begin
+	if(~rstn) begin
+		rem_o	<=	'd0;
+		quo_o   <=  'd0;
+	end else begin
+		if(rem_r[7][7]==1'b1) begin // if negative
+			// rem_o <= (rem_r[7]+op2_n)>>op2_ld_r[7];	// reg required, dd
+			rem_o <= (rem_r[7]+op2_n);
+			quo_o <= Q_reg[7]-1;
+		end else begin
+			// rem_o <= rem_r[7]>>op2_ld_r[7];
+			rem_o <= rem_r[7];
+			quo_o <= Q_reg[7];
+		end
+	end
+end
 
 
 endmodule

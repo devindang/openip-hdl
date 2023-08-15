@@ -4,12 +4,12 @@ add wave -noupdate -expand -label sim:/tb_div/Group1 -group {Region: sim:/tb_div
 add wave -noupdate -expand -label sim:/tb_div/Group1 -group {Region: sim:/tb_div} /tb_div/rstn
 add wave -noupdate -expand -label sim:/tb_div/Group1 -group {Region: sim:/tb_div} /tb_div/op1
 add wave -noupdate -expand -label sim:/tb_div/Group1 -group {Region: sim:/tb_div} /tb_div/op2
-add wave -noupdate -expand -label sim:/tb_div/Group1 -group {Region: sim:/tb_div} /tb_div/result
+add wave -noupdate -expand -label sim:/tb_div/Group1 -group {Region: sim:/tb_div} /tb_div/rem
+add wave -noupdate -expand -label sim:/tb_div/Group1 -group {Region: sim:/tb_div} /tb_div/quo
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} /tb_div/u_srt/clk
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} /tb_div/u_srt/rstn
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} /tb_div/u_srt/op1_i
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} /tb_div/u_srt/op2_i
-add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} /tb_div/u_srt/res_o
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} /tb_div/u_srt/op2_ld
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} -expand /tb_div/u_srt/op2_n
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} -expand /tb_div/u_srt/rem_r
@@ -24,8 +24,9 @@ add wave -noupdate -expand /tb_div/u_srt/Q_reg
 add wave -noupdate -expand /tb_div/u_srt/QM_reg
 add wave -noupdate -expand /tb_div/u_srt/n
 add wave -noupdate -expand /tb_div/u_srt/q
+add wave -noupdate -expand /tb_div/u_srt/op2_ld_r
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {164 ns} 0}
+WaveRestoreCursors {{Cursor 1} {45 ns} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100

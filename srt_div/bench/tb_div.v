@@ -26,7 +26,8 @@ reg  clk;
 reg  rstn;
 reg  [7:0] op1;
 reg  [7:0] op2;
-wire [7:0] result;
+wire [7:0] rem;
+wire [7:0] quo;
 
 //------------------------ PROCESS ------------------------//
 
@@ -35,8 +36,8 @@ initial begin
     rstn    <= 1'b0;
     repeat(4) @(posedge clk);
     rstn    <= 1'b1;
-	op1		<= 10;
-	op2		<= 3;
+	op1		<= 24;
+	op2		<= 5;
     repeat(32) @(posedge clk);
 	$display("-------------------------------------------------------------------------------");
 	$display("SUCCESS!");
@@ -59,7 +60,8 @@ srt_r2 u_srt(
 	.rstn(rstn),
 	.op1_i(op1),
 	.op2_i(op2),
-	.res_o(result)
+	.rem_o(rem),
+	.quo_o(quo)
 );
 
 endmodule
