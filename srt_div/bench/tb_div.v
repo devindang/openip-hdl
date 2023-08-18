@@ -36,8 +36,8 @@ initial begin
     rstn    <= 1'b0;
     repeat(4) @(posedge clk);
     rstn    <= 1'b1;
-	op1		<= 24;
-	op2		<= 5;
+	op1		<= 23;
+	op2		<= 7;
     repeat(32) @(posedge clk);
 	$display("-------------------------------------------------------------------------------");
 	$display("SUCCESS!");
@@ -55,7 +55,7 @@ end
 
 //------------------------ INST ------------------------//
 
-srt_r2 u_srt(
+srt_r4 u_srt(
 	.clk(clk),
 	.rstn(rstn),
 	.op1_i(op1),

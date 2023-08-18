@@ -38,14 +38,14 @@ reg  [2:0] op2_ld_r[7:0];	// op2 leading digit register
 //------------------------ PROCESS ------------------------//
 
 // find leading 1s or 0s
-find_ld #(8) u_find_ld2 (.op(op2_i), .pos(op2_ld));
+find_ld_r2 #(8) u_find_ld2 (.op(op2_i), .pos(op2_ld));
 assign op2_n = op2_i << op2_ld;
 assign q[0] = 1'b0;
 assign n[0] = 1'b0;
 genvar i;
 generate
 	for(i=0; i<7; i=i+1) begin
-		qds u_qds(
+		qds_r2 u_qds(
 			.r(rem_r[i]),
 			.sd(op2_n[7]),
 			.q(q[i+1]),
@@ -147,7 +147,7 @@ endmodule
 //------------------------ SUBROUTINE ------------------------//
 
 // find leading 1s or 0s
-module find_ld #(parameter WID=8)(op, pos);
+module find_ld_r2 #(parameter WID=8)(op, pos);
 input      [WID-1:0] op;
 output reg [$clog2(WID)-1:0] pos;
 reg  [WID-1:0] op_t;
@@ -184,7 +184,7 @@ endfunction
 endmodule
 
 // quotien digit selection table
-module qds #(parameter WID=8)(r, sd, q, neg);
+module qds_r2 #(parameter WID=8)(r, sd, q, neg);
 input  [WID-1:0] r;
 input  sd;				// sign of divisor
 output reg q;
