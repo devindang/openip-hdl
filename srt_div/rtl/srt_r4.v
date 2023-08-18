@@ -8,7 +8,7 @@
 // Author      : Devin
 // Editor      : VIM
 // Created     : 2023-08-17 11:32:09
-// Description :
+// Description : Radix-4 SRT division.
 //
 // $Id$
 //-------------------------------------------------------------------
@@ -16,218 +16,226 @@
 `timescale 1ns / 1ps
 
 module srt_r4(
-	input			  clk,
-	input			  rstn,
-	input		[7:0] op1_i,	// dividend
-	input 		[7:0] op2_i,	// divisor
-	output reg  [7:0] rem_o,
-	output reg  [7:0] quo_o
+	input			   clk,
+	input			   rstn,
+	input 			   vld_i,
+	input		[63:0] op1_i,	// dividend
+	input 		[63:0] op2_i,	// divisor
+	output reg  [63:0] rem_o,
+	output reg  [63:0] quo_o,
+	output reg   	   ready_o
 );
 
 //------------------------ SIGNALS ------------------------//
 
-wire [2:0] op1_ld;	// leading digit
-wire [2:0] op2_ld;
-wire [7:0] op1_n;	// normalized
-wire [7:0] op2_n;
-reg  [7:0] op2_nr [3:0];
-reg  [8:0] rem_r [3:0];	// 1-bit expand
-wire [1:0] q [3:0];		// half
-wire [3:0] n;			// half
-reg  [7:0] Q_reg[3:0];
-reg  [7:0] QM_reg[3:0];
-reg  [2:0] op1_ld_r[3:0];
-reg  [2:0] op2_ld_r[3:0];	// op2 leading digit register
-wire [2:0] subs;
-wire [2:0] iter;
+reg  [4:0]  cnt;
+reg  [63:0] op1_r, op2_r;   // registered
+wire [5:0]  op1_ld, op2_ld;	// leading digit
+reg  [5:0]  op1_s;			// op1 shift bits
+wire [63:0] op1_n, op2_n;	// normalized
+reg  [64:0] rem_r;   // 1-bit expand
+wire [1:0]  q;
+wire        n;
+reg  [63:0] Q_reg, QM_reg;
+reg  [63:0] Q_next, QM_next;
+wire [5:0]  subs;
+wire [4:0]  iter;
+
+reg  [3:0] state_next;
+reg  [3:0] state_reg;
+localparam ST_IDLE = 4'b0001;
+localparam ST_SAMP = 4'b0010;
+localparam ST_DIV  = 4'b0100;
+localparam ST_OUT  = 4'b1000;
 
 //------------------------ PROCESS ------------------------//
 
-//**************************** Find Leading 1s or 0s ****************************//
-find_ld #(8) u_find_ld1 (.op(op1_i), .pos(op1_ld));
-find_ld #(8) u_find_ld2 (.op(op2_i), .pos(op2_ld));
-assign op1_n = (op1_ld>2) ? (op1_i << (op1_ld-2)) : op1_i;	// opt
-assign op2_n = op2_i << op2_ld;
-assign q[0] = 2'b00;
-assign n[0] = 1'b0;
-genvar i;
-generate
-	for(i=0; i<7; i=i+1) begin : for_qds
-		qds u_qds(
-			.r_idx(rem_r[i][6:2]),	// 4r_{i-1}
-			.d_idx(op2_nr[i][7:3]),
-			.q(q[i+1]),
-			.neg(n[i+1])
-		);
-	end
-endgenerate
-integer i1;
+//**************************** FSM Description ****************************//
+
+always @(*) begin
+	case(state_reg)
+		ST_IDLE: begin
+			if(vld_i & ready_o) begin
+				state_next = ST_SAMP;
+			end
+		end
+		ST_SAMP: begin
+			state_next = ST_DIV;
+		end
+		ST_DIV: begin
+			if(cnt==iter+1) begin
+				state_next = ST_OUT;
+			end
+		end
+		ST_OUT: begin
+			state_next = ST_IDLE;
+		end
+		default: begin
+			state_next = ST_IDLE;
+		end
+	endcase
+end
+
 always @(posedge clk or negedge rstn) begin
 	if(!rstn) begin
-		for(i1=0; i1<4; i1=i1+1) begin
-			op1_ld_r[i1] <= 3'd0;
-			op2_ld_r[i1] <= 3'd0;
-		end
+		state_reg <= ST_IDLE;
 	end else begin
-		op1_ld_r[0] <= op1_ld;
-		op2_ld_r[0] <= op2_ld;
-		for(i1=0; i1<3; i1=i1+1) begin
-			op1_ld_r[i1+1] <= op1_ld_r[i1];
-			op2_ld_r[i1+1] <= op2_ld_r[i1];
+		state_reg <= state_next;
+	end
+end
+
+//**************************** Find Leading 1s or 0s ****************************//
+
+always @(posedge clk or negedge rstn) begin
+	if(!rstn) begin
+		op1_r <= 'd0;
+		op2_r <= 'd0;
+	end else begin
+		if(state_next==ST_SAMP) begin
+			op1_r <= op1_i;
+			op2_r <= op2_i;
 		end
 	end
 end
+find_ld #(64) u_find_ld1 (.op(op1_r), .pos(op1_ld));
+find_ld #(64) u_find_ld2 (.op(op2_r), .pos(op2_ld));
+always @(*) begin
+	if(op1_ld[0]^op2_ld[0]) begin
+		op1_s <= op1_ld-1;	// opt
+	end else begin
+		if(op1_ld>='d2) begin
+			op1_s <= op1_ld-2;
+		end else begin
+			op1_s <= op1_ld;
+		end
+	end
+end
+
+assign op1_n = op1_r << op1_s;
+assign op2_n = op2_r << op2_ld;
+generate
+	qds u_qds(
+		.r_idx(rem_r[62:58]),	// 4r_{i-1}
+		.d_idx(op2_n[63:59]),
+		.q(q),
+		.neg(n)
+	);
+endgenerate
 
 //**************************** Residual Remainder ****************************//
+
+assign subs = op2_ld - op1_s;
+assign iter = subs[5] ? 6'd0 : subs[5:1];
 always @(posedge clk or negedge rstn) begin
 	if(!rstn) begin
-		rem_r[0] <= 9'd0;
+		cnt <= 5'd0;
 	end else begin
-		rem_r[0] <= {op1_n[7],op1_n};
+		if(state_next==ST_DIV) begin
+			if(cnt==iter+1) begin
+				cnt <= 'd0;
+			end else begin
+				cnt <= cnt + 1'b1;
+			end
+		end else begin
+			cnt <= 'd0;
+		end
 	end
 end
-genvar j;
-generate
-	for(j=0; j<3; j=j+1) begin : for_rem
-		always @(posedge clk or negedge rstn) begin
-			if(!rstn) begin
-				rem_r[j+1] <= 9'd0;
-			end else begin
-				case({n[j+1],q[j+1]})
-					3'b000: rem_r[j+1] <= {rem_r[j][6:0],2'b00};
-					3'b001: rem_r[j+1] <= {rem_r[j][6:0],2'b00}-{op2_n[7],op2_n};	// -D
-					3'b010: rem_r[j+1] <= {rem_r[j][6:0],2'b00}-{op2_n,1'b0};		// -2D
-					3'b100: rem_r[j+1] <= {rem_r[j][6:0],2'b00};
-					3'b101: rem_r[j+1] <= {rem_r[j][6:0],2'b00}+{op2_n[7],op2_n};	// +D
-					3'b110: rem_r[j+1] <= {rem_r[j][6:0],2'b00}+{op2_n,1'b0};		// +2D
-					default: ;	// nop
-				endcase
+always @(posedge clk or negedge rstn) begin
+	if(!rstn) begin
+		rem_r <= 65'd0;
+	end else begin
+		if(state_next==ST_SAMP) begin
+			rem_r <= 65'd0;
+		end else begin
+			if(state_next==ST_DIV) begin
+				if(cnt=='d0) begin
+					rem_r <= {op1_n[63],op1_n};
+				end else begin
+					case({n,q})
+						3'b000: rem_r <= {rem_r[62:0],2'b00};
+						3'b001: rem_r <= {rem_r[62:0],2'b00}-{op2_n[63],op2_n};	// -D
+						3'b010: rem_r <= {rem_r[62:0],2'b00}-{op2_n,1'b0};		// -2D
+						3'b100: rem_r <= {rem_r[62:0],2'b00};
+						3'b101: rem_r <= {rem_r[62:0],2'b00}+{op2_n[63],op2_n};	// +D
+						3'b110: rem_r <= {rem_r[62:0],2'b00}+{op2_n,1'b0};		// +2D
+						default: ;	// nop
+					endcase
+				end
 			end
 		end
 	end
-endgenerate
+end
 
 //**************************** On the Fly Conversion ****************************//
-always @(posedge clk or negedge rstn) begin
-	Q_reg[0]  <= 8'd0;
-	QM_reg[0] <= 8'd0;
-end
-genvar k;
-generate
-	for(k=0; k<3; k=k+1) begin : for_otf
-		always @(posedge clk or negedge rstn) begin
-			if(!rstn) begin
-				Q_reg[k+1]  <= 8'd0;
-				QM_reg[k+1] <= 8'd0;
-			end else begin
-				if(n[k+1]==1'b0) begin	// q>=0
-					Q_reg[k+1]  <= {Q_reg[k][5:0],q[k+1]};
-				end else begin
-					Q_reg[k+1]  <= {QM_reg[k][5:0],q[k+1]};
-				end
-				if(n[k+1]==1'b0 & (|q[k+1])) begin	// q>0
-					QM_reg[k+1] <= {Q_reg[k][5:0],1'b0,q[k+1][1]};
-				end else begin
-					QM_reg[k+1] <= {QM_reg[k][5:0],~q[k+1]};
-				end
-			end
+
+always @(*) begin
+	if(state_next==ST_DIV) begin
+		if(n==1'b0) begin	// q>=0
+			Q_next  <= {Q_reg[61:0],q};
+		end else begin
+			Q_next  <= {QM_reg[61:0],1'b1,q[0]};
+		end
+		if(n==1'b0 & (|q)) begin	// q>0
+			QM_next <= {Q_reg[61:0],1'b0,q[1]};
+		end else begin
+			QM_next <= {QM_reg[61:0],~q};
 		end
 	end
-endgenerate
-
-//**************************** Post Proccessing ****************************//
-integer i2;
+end
 always @(posedge clk or negedge rstn) begin
 	if(!rstn) begin
-		for(i2=0; i2<4; i2=i2+1) begin
-			op2_nr[i2] <= 8'd0;
-		end
+		Q_reg  <= 8'd0;
+		QM_reg <= 8'd0;
 	end else begin
-		op2_nr[0] <= op2_n;
-		for(i2=0; i2<3; i2=i2+1) begin
-			op2_nr[i2+1] <= op2_nr[i2];
+		if(state_next==ST_SAMP) begin
+			Q_reg  <= 64'd0;
+			QM_reg <= 64'd0;
+		end else begin
+			Q_reg  <= Q_next;
+			QM_reg <= QM_next;
 		end
 	end
 end
-assign subs = op2_ld_r[3] - op1_ld_r[3] + 2;
-assign iter = {subs[2]^(subs[1]&subs[0]), subs[1]^subs[0]};	// ceil(subs/2)
+
+//**************************** Post Proccessing ****************************//
+
 always @(posedge clk or negedge rstn) begin
 	if(~rstn) begin
 		rem_o	<=	'd0;
 		quo_o   <=  'd0;
 	end else begin
-		case(iter)
-			3'd0: begin
-				if(rem_r[0][7]==1'b1) begin
-					rem_o <= (rem_r[0]+op2_nr[0]) >> op2_ld_r[0];
-					quo_o <= Q_reg[0]-1;
+		if(state_next==ST_OUT) begin
+			if(rem_r[63]==1'b1) begin
+				if(iter==0) begin
+					rem_o <= (rem_r+op2_n) >> (op1_s);	// when dividend smaller than divisor
 				end else begin
-					rem_o <= rem_r[0] >> op2_ld_r[0];
-					quo_o <= Q_reg[0];
+					rem_o <= (rem_r+op2_n) >> op2_ld;
 				end
-			end
-			3'd1: begin
-				if(rem_r[1][7]==1'b1) begin
-					rem_o <= (rem_r[1]+op2_nr[1]) >> op2_ld_r[1];
-					quo_o <= Q_reg[1]-1;
+				quo_o <= Q_reg-1;
+			end else begin
+				if(iter==0) begin
+					rem_o <= rem_r >> (op1_s);
 				end else begin
-					rem_o <= rem_r[1] >> op2_ld_r[1];
-					quo_o <= Q_reg[1];
+					rem_o <= rem_r >> op2_ld;
 				end
+				quo_o <= Q_reg;
 			end
-			3'd2: begin
-				if(rem_r[2][7]==1'b1) begin
-					rem_o <= (rem_r[2]+op2_nr[2]) >> op2_ld_r[2];
-					quo_o <= Q_reg[2]-1;
-				end else begin
-					rem_o <= rem_r[2] >> op2_ld_r[2];
-					quo_o <= Q_reg[2];
-				end
-			end
-			3'd3: begin
-				if(rem_r[3][7]==1'b1) begin
-					rem_o <= (rem_r[3]+op2_nr[3]) >> op2_ld_r[3];
-					quo_o <= Q_reg[3]-1;
-				end else begin
-					rem_o <= rem_r[3] >> op2_ld_r[3];
-					quo_o <= Q_reg[3];
-				end
-			end
-			3'd4: begin
-				if(rem_r[4][7]==1'b1) begin
-					rem_o <= (rem_r[4]+op2_nr[4]) >> op2_ld_r[4];
-					quo_o <= Q_reg[4]-1;
-				end else begin
-					rem_o <= rem_r[4] >> op2_ld_r[4];
-					quo_o <= Q_reg[4];
-				end
-			end
-			3'd5: begin
-				if(rem_r[5][7]==1'b1) begin
-					rem_o <= (rem_r[5]+op2_nr[5]) >> op2_ld_r[5];
-					quo_o <= Q_reg[5]-1;
-				end else begin
-					rem_o <= rem_r[5] >> op2_ld_r[5];
-					quo_o <= Q_reg[5];
-				end
-			end
-			3'd6: begin
-				if(rem_r[6][7]==1'b1) begin
-					rem_o <= (rem_r[6]+op2_nr[6]) >> op2_ld_r[6];
-					quo_o <= Q_reg[6]-1;
-				end else begin
-					rem_o <= rem_r[6] >> op2_ld_r[6];
-					quo_o <= Q_reg[6];
-				end
-			end
-			default: begin
-				rem_o <= 'd0;
-				quo_o <= 'd0;
-			end
-		endcase
+		end
 	end
 end
 
+always @(posedge clk or negedge rstn) begin
+	if(~rstn) begin
+		ready_o <= 1'b0;
+	end else begin
+		if(state_next==ST_IDLE) begin
+			ready_o <= 1'b1;
+		end else begin
+			ready_o <= 1'b0;
+		end
+	end
+end
 
 endmodule
 
