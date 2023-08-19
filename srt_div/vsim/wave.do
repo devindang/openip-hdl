@@ -6,6 +6,8 @@ add wave -noupdate -expand -label sim:/tb_div/Group1 -group {Region: sim:/tb_div
 add wave -noupdate -expand -label sim:/tb_div/Group1 -group {Region: sim:/tb_div} /tb_div/vld
 add wave -noupdate -expand -label sim:/tb_div/Group1 -group {Region: sim:/tb_div} -radix decimal /tb_div/op1
 add wave -noupdate -expand -label sim:/tb_div/Group1 -group {Region: sim:/tb_div} -radix decimal /tb_div/op2
+add wave -noupdate -expand -label sim:/tb_div/Group1 -group {Region: sim:/tb_div} -radix symbolic /tb_div/op1
+add wave -noupdate -expand -label sim:/tb_div/Group1 -group {Region: sim:/tb_div} -radix symbolic /tb_div/op2
 add wave -noupdate -expand -label sim:/tb_div/Group1 -group {Region: sim:/tb_div} -radix decimal /tb_div/rem
 add wave -noupdate -expand -label sim:/tb_div/Group1 -group {Region: sim:/tb_div} -radix decimal /tb_div/quo
 add wave -noupdate -expand -label sim:/tb_div/Group1 -group {Region: sim:/tb_div} /tb_div/ready
@@ -21,14 +23,19 @@ add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} -radix decimal /tb_div/u_srt/op1_r
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} -radix decimal /tb_div/u_srt/op2_r
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} -radix unsigned /tb_div/u_srt/op1_ld
+add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} -radix unsigned /tb_div/u_srt/op1_s
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} -radix unsigned /tb_div/u_srt/op2_ld
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} -radix hexadecimal /tb_div/u_srt/op1_n
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} -radix hexadecimal /tb_div/u_srt/op2_n
+add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} -radix binary /tb_div/u_srt/op1_n
+add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} -radix binary /tb_div/u_srt/op2_n
+add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} -radix binary /tb_div/u_srt/rem_r
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} /tb_div/u_srt/rem_r
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} /tb_div/u_srt/q
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} /tb_div/u_srt/n
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} /tb_div/u_srt/Q_next
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} /tb_div/u_srt/QM_next
+add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} /tb_div/u_srt/ops_sign
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} /tb_div/u_srt/Q_reg
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} /tb_div/u_srt/QM_reg
 add wave -noupdate -expand -label sim:/tb_div/u_srt/Group1 -group {Region: sim:/tb_div/u_srt} /tb_div/u_srt/subs
@@ -39,6 +46,7 @@ add wave -noupdate -expand -label sim:/tb_div/u_srt/u_qds/Group1 -group {Region:
 add wave -noupdate -expand -label sim:/tb_div/u_srt/u_qds/Group1 -group {Region: sim:/tb_div/u_srt/u_qds} -radix binary /tb_div/u_srt/u_qds/d_idx
 add wave -noupdate -expand -label sim:/tb_div/u_srt/u_qds/Group1 -group {Region: sim:/tb_div/u_srt/u_qds} /tb_div/u_srt/u_qds/q
 add wave -noupdate -expand -label sim:/tb_div/u_srt/u_qds/Group1 -group {Region: sim:/tb_div/u_srt/u_qds} /tb_div/u_srt/u_qds/neg
+add wave -noupdate -expand -label sim:/tb_div/u_srt/u_qds/Group1 -group {Region: sim:/tb_div/u_srt/u_qds} /tb_div/u_srt/u_qds/d_ori
 add wave -noupdate -expand -label sim:/tb_div/u_srt/u_qds/Group1 -group {Region: sim:/tb_div/u_srt/u_qds} /tb_div/u_srt/u_qds/r_ori
 add wave -noupdate -expand -label sim:/tb_div/u_srt/u_qds/Group1 -group {Region: sim:/tb_div/u_srt/u_qds} /tb_div/u_srt/u_qds/r_ge_0010
 add wave -noupdate -expand -label sim:/tb_div/u_srt/u_qds/Group1 -group {Region: sim:/tb_div/u_srt/u_qds} /tb_div/u_srt/u_qds/r_ge_0011
@@ -52,7 +60,7 @@ add wave -noupdate -expand -label sim:/tb_div/u_srt/u_qds/Group1 -group {Region:
 add wave -noupdate -expand -label sim:/tb_div/u_srt/u_qds/Group1 -group {Region: sim:/tb_div/u_srt/u_qds} /tb_div/u_srt/u_qds/q0
 add wave -noupdate -expand -label sim:/tb_div/u_srt/u_qds/Group1 -group {Region: sim:/tb_div/u_srt/u_qds} /tb_div/u_srt/u_qds/q2
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {106 ns} 0}
+WaveRestoreCursors {{Cursor 1} {414 ns} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -68,4 +76,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ns} {172 ns}
+WaveRestoreZoom {344 ns} {456 ns}

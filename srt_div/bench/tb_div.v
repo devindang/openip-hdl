@@ -39,16 +39,11 @@ initial begin
 	vld     <= 1'b0;
     repeat(4) @(posedge clk);
     rstn    <= 1'b1;
-	// @(posedge clk);
-	// 	#1;
-	// 	vld <= 1'b1;
-	// 	op1 <= 59;
-	// 	op2 <= 13;
 	repeat(1024) @(posedge clk) begin
 		#1;
 		vld     <= 1'b1;
-		op1     <= $random()%20;	// 32-bits
-		op2     <= $random()%20;	// 32-bits
+		op1     <= $random()%15-31;	// 32-bits
+		op2     <= $random()%15-31;	// 32-bits
 	end
 	@(posedge clk);
 		#1;

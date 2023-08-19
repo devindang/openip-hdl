@@ -24,6 +24,7 @@ module srt_r4(
 	output reg  [63:0] rem_o,
 	output reg  [63:0] quo_o,
 	output reg   	   ready_o
+	// err_div_zero
 );
 
 //------------------------ SIGNALS ------------------------//
@@ -40,6 +41,7 @@ reg  [63:0] Q_reg, QM_reg;
 reg  [63:0] Q_next, QM_next;
 wire [5:0]  subs;
 wire [4:0]  iter;
+wire   	    ops_sign;
 
 reg  [3:0] state_next;
 reg  [3:0] state_reg;
@@ -100,13 +102,17 @@ end
 find_ld #(64) u_find_ld1 (.op(op1_r), .pos(op1_ld));
 find_ld #(64) u_find_ld2 (.op(op2_r), .pos(op2_ld));
 always @(*) begin
-	if(op1_ld[0]^op2_ld[0]) begin
-		op1_s <= op1_ld-1;	// opt
+	if(!rstn) begin
+		op1_s <= 'd0;
 	end else begin
-		if(op1_ld>='d2) begin
-			op1_s <= op1_ld-2;
+		if(op1_ld[0]^op2_ld[0]) begin
+			op1_s <= op1_ld-1;	// opt
 		end else begin
-			op1_s <= op1_ld;
+			if(op1_ld>='d2) begin
+				op1_s <= op1_ld-2;
+			end else begin
+				op1_s <= op1_ld;
+			end
 		end
 	end
 end
@@ -170,6 +176,10 @@ end
 //**************************** On the Fly Conversion ****************************//
 
 always @(*) begin
+	if(!rstn) begin
+		Q_next  <= 'd0;
+		QM_next <= 'd0;
+	end
 	if(state_next==ST_DIV) begin
 		if(n==1'b0) begin	// q>=0
 			Q_next  <= {Q_reg[61:0],q};
@@ -183,14 +193,15 @@ always @(*) begin
 		end
 	end
 end
+assign ops_sign = op1_i[63]^op2_i[63];
 always @(posedge clk or negedge rstn) begin
 	if(!rstn) begin
 		Q_reg  <= 8'd0;
 		QM_reg <= 8'd0;
 	end else begin
 		if(state_next==ST_SAMP) begin
-			Q_reg  <= 64'd0;
-			QM_reg <= 64'd0;
+			Q_reg  <= {64{ops_sign}};
+			QM_reg <= {64{ops_sign}};
 		end else begin
 			Q_reg  <= Q_next;
 			QM_reg <= QM_next;
@@ -206,18 +217,18 @@ always @(posedge clk or negedge rstn) begin
 		quo_o   <=  'd0;
 	end else begin
 		if(state_next==ST_OUT) begin
-			if(rem_r[63]==1'b1) begin
+			if(rem_r[64] & ~op1_n[63]) begin
 				if(iter==0) begin
-					rem_o <= (rem_r+op2_n) >> (op1_s);	// when dividend smaller than divisor
+					rem_o <= $signed(rem_r+op2_n) >>> (op1_s);	// when dividend smaller than divisor
 				end else begin
-					rem_o <= (rem_r+op2_n) >> op2_ld;
+					rem_o <= $signed(rem_r+op2_n) >> op2_ld;
 				end
 				quo_o <= Q_reg-1;
 			end else begin
 				if(iter==0) begin
-					rem_o <= rem_r >> (op1_s);
+					rem_o <= $signed(rem_r) >>> (op1_s);
 				end else begin
-					rem_o <= rem_r >> op2_ld;
+					rem_o <= $signed(rem_r) >>> op2_ld;
 				end
 				quo_o <= Q_reg;
 			end
@@ -260,10 +271,14 @@ end
 assign pos_oh = op_t & (~op_t+1);	// ripple carry
 integer j;
 always @(*) begin
-	for(j=0; j<WID; j=j+1) begin
-		if(pos_oh[j]==1) begin
-			pos <= j-1;
+	if(|pos_oh) begin
+		for(j=0; j<WID; j=j+1) begin
+			if(pos_oh[j]==1) begin
+				pos <= j-1;
+			end
 		end
+	end else begin
+		pos <= 0;
 	end
 end
 // clog2 function
@@ -284,13 +299,19 @@ input  [4:0] r_idx;		// remainder index
 input  [4:0] d_idx;		// divisor index
 output [1:0] q;			// quotient digit
 output     	 neg;		// negative quotient
+wire         ops_sign;	// opposite sign
 wire   [4:0] r_ori;		// original code of remainder
+wire   [4:0] d_ori;		// original code divisor 
 wire r_ge_0010, r_ge_0011, r_ge_0110, r_ge_0111, r_ge_1000,
      r_ge_1001, r_ge_1010, r_ge_1011, r_ge_1100; // greater than
 reg  q0, q2;		    // abs(qi) equal to 0,2
+assign ops_sign = r_idx[4] ^ d_idx[4];
 assign r_ori = r_idx[4] ? ~r_idx + 1 : r_idx;
+assign d_ori = d_idx[4] ? ~d_idx + 1 : d_idx;
 assign r_ge_0010 = (r_ori[3:0]>=4'b0010);
 assign r_ge_0011 = (r_ori[3:0]>=4'b0011);
+assign r_ge_0100 = (r_ori[3:0]>=4'b0100);
+assign r_ge_0101 = (r_ori[3:0]>=4'b0101);
 assign r_ge_0110 = (r_ori[3:0]>=4'b0110);
 assign r_ge_0111 = (r_ori[3:0]>=4'b0111);
 assign r_ge_1000 = (r_ori[3:0]>=4'b1000);
@@ -299,38 +320,38 @@ assign r_ge_1010 = (r_ori[3:0]>=4'b1010);
 assign r_ge_1011 = (r_ori[3:0]>=4'b1011);
 assign r_ge_1100 = (r_ori[3:0]>=4'b1100);
 always @(*) begin
-	case(d_idx[3:0])
+	case(d_ori[3:0])
 		4'b1000: begin
-			q0 <= ~r_ge_0010;
-			q2 <= r_ge_0110;
+			q0 <= ops_sign ? ~r_ge_0011: ~r_ge_0010;
+			q2 <= ops_sign ? r_ge_0111: r_ge_0110;
 		end
 		4'b1001: begin
-			q0 <= ~r_ge_0010;
-			q2 <= r_ge_0111;
+			q0 <= ops_sign ? ~r_ge_0011: ~r_ge_0010;
+			q2 <= ops_sign ? r_ge_1000: r_ge_0111;
 		end
 		4'b1010: begin
-			q0 <= ~r_ge_0010;
-			q2 <= r_ge_1000;
+			q0 <= ops_sign ? ~r_ge_0100 : ~r_ge_0010;
+			q2 <= ops_sign ? r_ge_1001 : r_ge_1000;
 		end
 		4'b1011: begin
-			q0 <= ~r_ge_0010;
-			q2 <= r_ge_1001;
+			q0 <= ops_sign ? ~r_ge_0100 : ~r_ge_0010;
+			q2 <= ops_sign ? r_ge_1001 : r_ge_1001;
 		end
 		4'b1100: begin
-			q0 <= ~r_ge_0011;
-			q2 <= r_ge_1010;
+			q0 <= ops_sign ? ~r_ge_0101 : ~r_ge_0011;
+			q2 <= ops_sign ? r_ge_1010 : r_ge_1010;
 		end
 		4'b1101: begin
-			q0 <= ~r_ge_0011;
-			q2 <= r_ge_1010;
+			q0 <= ops_sign ? ~r_ge_0101 : ~r_ge_0011;
+			q2 <= ops_sign ? r_ge_1011 : r_ge_1010;
 		end
 		4'b1110: begin
-			q0 <= ~r_ge_0011;
-			q2 <= r_ge_1011;
+			q0 <= ops_sign ? ~r_ge_0101 : ~r_ge_0011;
+			q2 <= ops_sign ? r_ge_1011 : r_ge_1011;
 		end
 		4'b1111: begin
-			q0 <= ~r_ge_0011;
-			q2 <= r_ge_1100;
+			q0 <= ops_sign ? ~r_ge_0101 : ~r_ge_0011;
+			q2 <= ops_sign ? r_ge_1100 : r_ge_1100;
 		end
 		default: begin
 			q0 <= 1'b1;
@@ -339,6 +360,5 @@ always @(*) begin
 	endcase
 end
 assign q = q0 ? 2'b00 : (q2 ? 2'b10 : 2'b01);
-assign neg = ~q0 & (d_idx[4]!=r_idx[4]);
+assign neg = ~q0 & ops_sign;
 endmodule
-
