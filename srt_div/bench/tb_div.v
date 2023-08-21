@@ -30,6 +30,11 @@ reg  [63:0] op2;
 wire [63:0] rem;
 wire [63:0] quo;
 wire        ready;
+reg  [63:0] rem_ref;
+reg  [63:0] quo_ref;
+reg  [63:0] rem_d, rem_d2;
+reg  [63:0] quo_d, quo_d2;
+reg    		mismatch;
 
 //------------------------ PROCESS ------------------------//
 
@@ -37,6 +42,7 @@ initial begin
     clk     <= 1'b0;
     rstn    <= 1'b0;
 	vld     <= 1'b0;
+	mismatch <= 1'b0;
     repeat(4) @(posedge clk);
     rstn    <= 1'b1;
 	repeat(1024) @(posedge clk) begin
@@ -52,6 +58,30 @@ initial begin
 	$display("-------------------------------------------------------------------------------");
 	$display("SUCCESS!");
     $finish();
+end
+
+always @(*) begin
+	if(ready) begin
+		quo_ref <= op1 / op2;
+		rem_ref <= op1 % op2;
+	end
+end
+
+always @(posedge clk) begin
+	rem_d <= rem_ref;
+	quo_d <= quo_ref;
+	rem_d2 <= rem_d;
+	quo_d2 <= quo_d;
+	if(ready) begin
+		if(rem_d2 != rem) begin
+			mismatch <= 1'b1;
+			$display("-------------------------------------------------------------------------------");
+			$display("WARNING!");
+			// $display("Result not match, res_ref = %d, res_sim = %d, at time = %t",res_ref,result,$time);
+		end else begin
+			mismatch <= 1'b0;
+		end
+	end
 end
 
 always begin

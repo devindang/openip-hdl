@@ -217,13 +217,22 @@ always @(posedge clk or negedge rstn) begin
 		quo_o   <=  'd0;
 	end else begin
 		if(state_next==ST_OUT) begin
-			if(rem_r[64] & ~op1_n[63]) begin
-				if(iter==0) begin
-					rem_o <= $signed(rem_r+op2_n) >>> (op1_s);	// when dividend smaller than divisor
+			if(rem_r[64]) begin
+				if(~op1_n[63]) begin	// positive
+					if(iter==0) begin
+						rem_o <= $signed(rem_r+{op2_n[63],op2_n}) >>> (op1_s);	// when dividend smaller than divisor
+					end else begin
+						rem_o <= $signed(rem_r+{op2_n[63],op2_n}) >> op2_ld;
+					end
+					quo_o <= Q_reg-1;
 				end else begin
-					rem_o <= $signed(rem_r+op2_n) >> op2_ld;
+					if(iter==0) begin
+						rem_o <= $signed(rem_r-{op2_n[63],op2_n}) >>> (op1_s);	// there's truncation for 1-bit MSB
+					end else begin
+						rem_o <= $signed(rem_r-{op2_n[63],op2_n}) >> op2_ld;
+					end
+					quo_o <= Q_reg+1;
 				end
-				quo_o <= Q_reg-1;
 			end else begin
 				if(iter==0) begin
 					rem_o <= $signed(rem_r) >>> (op1_s);
@@ -330,27 +339,27 @@ always @(*) begin
 			q2 <= ops_sign ? r_ge_1000: r_ge_0111;
 		end
 		4'b1010: begin
-			q0 <= ops_sign ? ~r_ge_0100 : ~r_ge_0010;
+			q0 <= ops_sign ? ~r_ge_0100 : ~r_ge_0011;
 			q2 <= ops_sign ? r_ge_1001 : r_ge_1000;
 		end
 		4'b1011: begin
-			q0 <= ops_sign ? ~r_ge_0100 : ~r_ge_0010;
+			q0 <= ops_sign ? ~r_ge_0100 : ~r_ge_0011;
 			q2 <= ops_sign ? r_ge_1001 : r_ge_1001;
 		end
 		4'b1100: begin
-			q0 <= ops_sign ? ~r_ge_0101 : ~r_ge_0011;
+			q0 <= ops_sign ? ~r_ge_0101 : ~r_ge_0100;
 			q2 <= ops_sign ? r_ge_1010 : r_ge_1010;
 		end
 		4'b1101: begin
-			q0 <= ops_sign ? ~r_ge_0101 : ~r_ge_0011;
+			q0 <= ops_sign ? ~r_ge_0101 : ~r_ge_0100;
 			q2 <= ops_sign ? r_ge_1011 : r_ge_1010;
 		end
 		4'b1110: begin
-			q0 <= ops_sign ? ~r_ge_0101 : ~r_ge_0011;
+			q0 <= ops_sign ? ~r_ge_0101 : ~r_ge_0100;
 			q2 <= ops_sign ? r_ge_1011 : r_ge_1011;
 		end
 		4'b1111: begin
-			q0 <= ops_sign ? ~r_ge_0101 : ~r_ge_0011;
+			q0 <= ops_sign ? ~r_ge_0101 : ~r_ge_0100;
 			q2 <= ops_sign ? r_ge_1100 : r_ge_1100;
 		end
 		default: begin
