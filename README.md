@@ -15,6 +15,7 @@ Open IP in Hardware Description Language.
 | 2     | [nr_fft](https://github.com/devindang/openip-hdl/tree/main/nr_fft) | Calculate Fast Fourier Transform (FFT) for NR bandwidth.     |
 | 3     | [booth_mul](https://github.com/devindang/openip-hdl/tree/main/booth_mul) | 64x64 Booth-Wallace multiplier, pipelined to 3 stages*.      |
 | 4     | [srt_div](https://github.com/devindang/openip-hdl/tree/main/srt_div) | 64-bits radix2-SRT, radix-4 SRT division*.                   |
+| 5     | [uart](https://github.com/devindang/openip-hdl/tree/main/uart) | Universal asynchronous Receiver Transmitter.                 |
 
 * : The design documents can be found [HERE](https://github.com/devindang/dv-cpu-rv/blob/main/docs/dv-cpu-doc.pdf).
 
